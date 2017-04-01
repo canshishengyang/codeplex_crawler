@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{57846fcb-761e-422e-bae3-253c0aae8d12}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>codeplex\startScrapy.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
+    <InterpreterVersion>2.7</InterpreterVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="codeplex\DAO.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="codeplex\db_operation.py" />
+    <Compile Include="codeplex\items.py" />
+    <Compile Include="codeplex\middlewares.py" />
+    <Compile Include="codeplex\pipelines.py" />
+    <Compile Include="codeplex\settings.py" />
+    <Compile Include="codeplex\signCalc.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="codeplex\spiders\codeplexSpider.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="codeplex\spiders\crawler.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="codeplex\spiders\__init__.py" />
+    <Compile Include="codeplex\startScrapy.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="codeplex\udload2.py" />
+    <Compile Include="codeplex\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="codeplex" />
+    <Folder Include="codeplex\spiders" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\2.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="codeplex\scrapy.cfg" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>
