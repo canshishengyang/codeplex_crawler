@@ -17,7 +17,7 @@ from codeplex.DAO import if_project_exists
 from codeplex.DAO import select_id_by_pjname
 from codeplex.DAO import if_file_exists
 from codeplex.DAO import selectMD5
-
+from codeplex.db_operation import update_project_record
 
 from codeplex.udload2 import upload_to_commonstorage
 from scrapy.pipelines.files import FilesPipeline
@@ -30,6 +30,7 @@ from codeplex.items import ProjectItem
 
 from codeplex.signCalc import calcmd5
 from scrapy.exceptions import DropItem
+from urllib import unquote
 import hashlib
 import functools
 import logging
@@ -47,25 +48,27 @@ class CodeplexPipeline(object):
            
             md5 = calcmd5(item['pj_name'],item['pj_desc'],item['pj_download_times'])
             if not result:
-                insert_into_db(self.db,'Codeplex_projects',"id,pj_name,pj_desc,pj_type,pj_download_times,pj_start_date",
+                insert_into_db(self.db,'Codeplex_projects',"id,pj_name,pj_desc,pj_type,pj_download_times,pj_start_date,MD5,update_time",
                                 "0,'"+item['pj_name']+
                                     "','"+item['pj_desc']+
-                                       "','"+ " .net "
+                                       "','"+unquote(str(item['pj_tag'])).replace(',','')+
                                         "',"+item['pj_download_times']+
-                                          ",'"+item['pj_start_date']+"','"+md5+"'")  
+                                          ",'"+item['pj_start_date']+"','"+md5+"','"+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+"'")  
                 return item     
             else:
                 
                 md5now = selectMD5('Codeplex_projects',md5)
                 
                 if not md5now:
-                    delete_from_table(self.db,'Codeplex_projects','pj_name',item['pj_name'])
-                    insert_into_db(self.db,'Codeplex_projects',"id,pj_name,pj_desc,pj_type,pj_download_times,pj_start_date",
-                                "0,'"+item['pj_name']+
-                                    "','"+item['pj_desc']+
-                                       "','"+ " .net "
-                                        "',"+item['pj_download_times']+
-                                          ",'"+item['pj_start_date']+"','"+md5+"'")  
+                    update_project_record('Codeplex_projects',result[0][0],item['pj_name'],item['pj_desc'],
+                                                        unquote(str(item['pj_tag'])).replace(',',''),item['pj_download_times'],item['pj_start_date'],md5)
+                 #   delete_from_table(self.db,'Codeplex_projects','pj_name',item['pj_name'])
+                 #   insert_into_db(self.db,'Codeplex_projects',"id,pj_name,pj_desc,pj_type,pj_download_times,pj_start_date,MD5",
+                 #               "0,'"+item['pj_name']+
+                 #                   "','"+item['pj_desc']+
+                 #                      "','"+ item['pj_tag']+
+                 #                       "',"+item['pj_download_times']+
+                 #                         ",'"+item['pj_start_date']+"','"+md5+"'")  
                 else: 
                     raise DropItem("Project exists!!")
         elif isinstance(item,IssueItem):
@@ -81,12 +84,12 @@ class CodeplexPipeline(object):
                result = if_issue_exists('Codeplex_issues',id[0][0],item['issue_title'])
                  
                if not result:
-                    insert_into_db(self.db,'Codeplex_issues',"id,issue_title,issue_content,issue_starter,issue_start_time,pj_id",
+                    insert_into_db(self.db,'Codeplex_issues',"id,issue_title,issue_content,issue_starter,issue_start_time,pj_id,update_time",
                                 "0,'"+str(item['issue_title']).replace("'","''")+
                                     "','"+str(item['issue_content']).replace("'","''")+
                                         "','"+item['issue_starter']+
                                             "','"+item['issue_start_time']+
-                                               "'," +str(id[0][0]))
+                                               "'," +str(id[0][0])+",'"+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+"'")
                return item        
         elif isinstance(item,CommitItem):
             
@@ -98,8 +101,8 @@ class CodeplexPipeline(object):
           
                 if not result:
        #             time.sleep(2)
-                    insert_into_db(self.db,'Codeplex_commits',"id,commit_id,commit_commitor,commit_comment,commit_date,pj_id",
-                                                      "0,'"+item['commit_id']+"','"+item['commit_commitor']+"','"+str(item['commit_comment']).replace("'","''")+"','"+item['commit_date']+"',"+str(id[0][0]))
+                    insert_into_db(self.db,'Codeplex_commits',"id,commit_id,commit_commitor,commit_comment,commit_date,pj_id,update_time",
+                                                      "0,'"+item['commit_id']+"','"+item['commit_commitor']+"','"+str(item['commit_comment']).replace("'","''")+"','"+item['commit_date']+"',"+str(id[0][0])+",'"+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+"'")
                                               
             return item          
         else:
@@ -144,9 +147,9 @@ class CodesPipeline(FilesPipeline):
                            
                             upload_to_commonstorage('./codes/full/'+str(tp[1]['path']).split('/')[-1])
                             insert_into_db(db,'Codeplex_files',
-                                                    "id,file_url,pj_id,commit_id", 
+                                                    "id,file_url,pj_id,commit_id,update_time", 
                                                         "0,'"+str(tp[1]['path']).split('/')[-1]+
-                                                            "','"+str(id[0][0])+"','"+item['commit_id']+"'")
+                                                            "','"+str(id[0][0])+"','"+item['commit_id']+"','"+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+"'")
         else:
             pass
         return item

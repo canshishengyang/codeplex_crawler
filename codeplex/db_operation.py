@@ -156,6 +156,18 @@ def insert_into_db(db,table_name,field,value):
         sys.exit()
         return False
 
+def update_project_record(scheme,id,pj_name,pj_desc,pj_type,pj_download_times,pj_date,md5):
+    db= connect_db()
+    sql = r"update "+scheme+r" set pj_name= '"+pj_name+r"',pj_desc = '"+pj_desc+r"',pj_type = '"+pj_type+r"',pj_start_date = '"+pj_date+r"',MD5 = '"+md5+"',"+"update_time = '"+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+"' where id ="+str(id) + r";"
+    print sql
+    try:
+        cursor = db.cursor()
+        cursor.execute(sql)
+        db.commit()
+
+    
+    except Exception,e:
+        print e 
 
 #========================================================#
 #update a record with field=value
@@ -230,6 +242,8 @@ def connect_db():
         #print '\n'
        # print result
     return db
+if __name__=='__main__':
+    update_project_record('Codeplex_projects',183,'wangtua','desc','sta',0,'as','adfsasf')
 #============================================================#
 #db=connect_to_db(DB_IP,DB_USER,DB_PASS,DB_NAME)
 #

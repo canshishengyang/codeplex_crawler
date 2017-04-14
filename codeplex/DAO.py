@@ -32,7 +32,7 @@ def selectMD5(scheme,MD5):
 def if_project_exists(scheme,name):
         db=connect_db()
         cursor=db.cursor()
-        sql=r"select pj_name from " + scheme + r" where pj_name like '"+name+r"'"
+        sql=r"select id from " + scheme + r" where pj_name like '"+name+r"'"
         print sql
         try:
             cursor.execute(sql)

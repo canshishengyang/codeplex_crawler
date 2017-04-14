@@ -1,36 +1,38 @@
+# -*- coding: UTF-8 -*-
 import scrapy.spider
 import urlparse
 import logging
 import json
 import os
 import time
+import sys
 
 from codeplex.items import ProjectItem
 from codeplex.items import CommitItem
 from codeplex.items import IssueItem
 from codeplex.items import EmptyItem
-class codeplexSpider(scrapy.spider.Spider):
+class codeplexSpider(scrapy.Spider):
     name='codeplexSpider'
     tagName=''
     logger = logging.getLogger()
     
     def start_requests(self):
      
-     
-   
+            reload(sys)  
+            sys.setdefaultencoding('utf8')  
             page = 0
-            
+         
       
-            list_url = r"http://www.codeplex.com/site/search?query=&sortBy=DownloadCount&tagName="+self.tagName+r"&licenses=|&refinedSearch=true&size=100&page="
-            list_url = list_url + str(page)
+           # list_url = r"http://www.codeplex.com/site/search?query=&sortBy=DownloadCount&tagName="+self.tagName+r"&licenses=|&refinedSearch=true&size=100&page="
+           # list_url = list_url + str(page)
         
-            
+            list_url = r"https://www.codeplex.com/site/search?query=&sortBy=DownloadCount&tagName=%2cpowershell%2c&licenses=|&refinedSearch=true&page=2"
             yield scrapy.Request(list_url,callback=self.parseProjectList,meta={'page':page,'list_url':list_url},dont_filter=False)
          
     
     def parseProjectList(self,response):
-            project_list=response.xpath("//body/form[@id='aspnetForm']/div[4]/div[1]/div[2]/table[@id='search_directory']/tr/td[1]")
-         
+            project_list=response.xpath("//body/form[@id='aspnetForm']/div[5]/div[1]/div[2]/table[@id='search_directory']/tr/td[1]")
+           
             for pj in project_list:
                 Pj_Item = ProjectItem()
                 if len(pj.xpath("div/h3/a/text()").extract())==0:
@@ -45,9 +47,9 @@ class codeplexSpider(scrapy.spider.Spider):
            
                 Pj_Item['pj_download_times']=pj.xpath("div/p[@class='search_info']/span[2]/text()").extract()[0]    
                 Pj_Item['pj_start_date']=pj.xpath("div/p[@class='search_info']/span[3]/text()").extract()[0]
-            
+                Pj_Item['pj_tag'] = self.tagName
         
-   #         self.logger.info("page_url: " + pj_page_url)
+                #self.logger.info("page_url: " + pj_page_url)
                 netloc = urlparse.urlparse(str(pj_page_url))[1]
                 commit_page = 0
                 commits_url = urlparse.urlunparse(( 'http',
@@ -62,7 +64,7 @@ class codeplexSpider(scrapy.spider.Spider):
                                                              ''))
             
 
-
+                
                 yield scrapy.Request(pj_page_url,callback=self.paseProjectPage,meta={'pj_item':Pj_Item,
                                                                     'commits_url':commits_url,'issues_url':issues_url,
                                                                         'commit_page':commit_page,'issue_page':issue_page},dont_filter=False)
@@ -77,11 +79,11 @@ class codeplexSpider(scrapy.spider.Spider):
     
         Pj_Item = response.meta['pj_item']
         #the date of last update of the project
-        pj_date=response.xpath("//body/form[1]/div[4]/div[3]/div[1]/table[1]/tr[2]/td/span/text()").extract()
+        pj_date=response.xpath("//body/form[1]/div[5]/div[3]/div[1]/table[1]/tr[2]/td/span/text()").extract()
         #the status present
-        pj_status=response.xpath("//body/form[1]/div[4]/div[3]/div[1]/table[1]/tr[3]/td/text()").extract()
+        pj_status=response.xpath("//body/form[1]/div[5]/div[3]/div[1]/table[1]/tr[3]/td/text()").extract()
         #download times of the project
-        pj_download_times=response.xpath("//body/form[1]/div[4]/div[3]/div[1]/table[1]/tr[4]/td/text()").extract()
+        pj_download_times=response.xpath("//body/form[1]/div[5]/div[3]/div[1]/table[1]/tr[4]/td/text()").extract()
 
 
         
@@ -104,10 +106,13 @@ class codeplexSpider(scrapy.spider.Spider):
             commit_id = commit.xpath("td/a/text()").extract()[0]
             
             commit_commiter = ''
-            if len(commits.xpath("td/a/text()").extract())== 2:
+            if len(commit.xpath("td/a/text()").extract())== 2:
                 commit_commiter = commit.xpath("td/a/text()").extract()[1]
+                print commit_commiter+"         1"
             else:
                 commit_commiter = commit.xpath("td/span/@title").extract()[0]
+                print commit_commiter+"         0"
+            
             commit_date = commit.xpath("td[2]/span").xpath('string(.)').extract()[0]
             commit_comment =commit.xpath("td[3]/p[@class='changesetComment']/text()").extract()[0]
             
@@ -163,7 +168,9 @@ class codeplexSpider(scrapy.spider.Spider):
                 issue_page_url = issue.xpath("div[2]/h3/a/@href").extract()[0]
           
                 yield scrapy.Request(issue_page_url,callback = self.parseIssuePage,meta={'Issue_Item':Issue_Item},dont_filter=False)
-            
+    def close(spider, reason):
+        os.system("./delete")
+        return super(codeplexSpider, spider).close(reason)      
     def parseIssuePage(self,response):
         Issue_Item = response.meta['Issue_Item']
 
@@ -185,3 +192,4 @@ class codeplexSpider(scrapy.spider.Spider):
    
         Issue_Item['issue_comment_list'] = issue_comment_list
         yield Issue_Item
+        

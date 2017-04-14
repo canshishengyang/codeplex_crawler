@@ -16,7 +16,7 @@ class ProjectItem(scrapy.Item):
         #pj_user=scrapy.Field()
         pj_desc=scrapy.Field()
         pj_start_date=scrapy.Field()
-        pj_type=scrapy.Field()
+        pj_tag=scrapy.Field()
         pj_download_times=scrapy.Field()
        # pj_status=scrapy.Field()
 
